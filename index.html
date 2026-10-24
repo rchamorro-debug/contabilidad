@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ContaSimple Cloud - ERP Contable & Impuestos</title>
+  <title>ContaSimple Cloud - ERP Contable & Fiscal Completo</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -21,7 +21,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
 
-    aside { width: 260px; background: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
+    aside { width: 270px; background: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; }
     aside .brand { padding: 20px; font-size: 20px; font-weight: 700; color: #38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); }
     
     .company-selector-box { padding: 15px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -42,7 +42,7 @@
     .card { background: var(--card-bg); border-radius: 8px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 25px; }
     h2 { font-size: 18px; margin-bottom: 20px; color: #0f172a; font-weight: 600; }
 
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; }
     .form-group label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); text-transform: uppercase; }
     .form-group input, .form-group select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; background: #fff; }
@@ -59,9 +59,10 @@
     .status-online { color: var(--success); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; }
 
-    .tax-box { background: #f1f5f9; padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary); margin-bottom: 15px; }
-    .tax-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; color: #0f172a; }
-    .tax-value { font-size: 24px; font-weight: 800; color: var(--primary); }
+    .tax-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .tax-box { background: #f1f5f9; padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary); }
+    .tax-title { font-weight: 700; font-size: 15px; margin-bottom: 5px; color: #0f172a; }
+    .tax-value { font-size: 22px; font-weight: 800; color: var(--primary); margin: 8px 0; }
   </style>
 </head>
 <body>
@@ -79,8 +80,8 @@
     <nav>
       <button class="nav-btn active" onclick="switchSection('ventas', this)">Facturas de Venta</button>
       <button class="nav-btn" onclick="switchSection('presupuestos', this)">Presupuestos</button>
-      <button class="nav-btn" onclick="switchSection('gastos', this)">Gastos y Compras</button>
-      <button class="nav-btn" onclick="switchSection('impuestos', this)">Modelos Impuestos (AEAT)</button>
+      <button class="nav-btn" onclick="switchSection('gastos', this)">Gastos / Compras / Alquileres</button>
+      <button class="nav-btn" onclick="switchSection('impuestos', this)">Modelos Impuestos AEAT</button>
       <button class="nav-btn" onclick="switchSection('contactos', this)">Clientes / Proveedores</button>
       <button class="nav-btn" onclick="switchSection('empresas', this)">Gestión Empresas</button>
     </nav>
@@ -105,7 +106,7 @@
                 <input type="text" id="saleNumber" value="F2026-0001" required>
               </div>
               <div class="form-group">
-                <label>Cliente / NIF</label>
+                <label>Cliente</label>
                 <input type="text" id="saleClientName" placeholder="Nombre o Razón Social" required>
               </div>
               <div class="form-group">
@@ -129,6 +130,14 @@
                   <option value="10">10%</option>
                   <option value="4">4%</option>
                   <option value="0">0%</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Retención IRPF (%)</label>
+                <select id="saleIrpf">
+                  <option value="0">0% (Ninguna)</option>
+                  <option value="15">15% (Profesional)</option>
+                  <option value="7">7% (Nuevo Profesional)</option>
                 </select>
               </div>
             </div>
@@ -185,28 +194,12 @@
             <button type="submit" class="btn btn-warning">Guardar Presupuesto</button>
           </form>
         </div>
-
-        <div class="card">
-          <h2>Listado de Presupuestos</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Nº Presupuesto</th>
-                <th>Cliente</th>
-                <th>Concepto</th>
-                <th>Base (€)</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="budgetTableBody"></tbody>
-          </table>
-        </div>
       </div>
 
       <!-- SECCIÓN GASTOS Y COMPRAS -->
       <div id="gastos" class="tab-section">
         <div class="card">
-          <h2>Registrar Gasto / Factura Recibida</h2>
+          <h2>Registrar Gasto / Compra / Alquiler</h2>
           <form id="expenseForm">
             <div class="form-grid">
               <div class="form-group">
@@ -214,8 +207,8 @@
                 <input type="text" id="expNumber" placeholder="PROV-9982" required>
               </div>
               <div class="form-group">
-                <label>Proveedor / Acreedor</label>
-                <input type="text" id="expProvider" placeholder="Suministros / Alquiler" required>
+                <label>Proveedor / Arrendador</label>
+                <input type="text" id="expProvider" placeholder="Nombre Proveedor o Casero" required>
               </div>
               <div class="form-group">
                 <label>Fecha Factura</label>
@@ -225,7 +218,7 @@
             <div class="form-grid">
               <div class="form-group" style="grid-column: span 2;">
                 <label>Concepto Gasto</label>
-                <input type="text" id="expConcept" placeholder="Suministro de Luz / Alquiler Oficina" required>
+                <input type="text" id="expConcept" placeholder="Alquiler Oficina / Honorarios Abogado" required>
               </div>
               <div class="form-group">
                 <label>Base Imponible (€)</label>
@@ -240,6 +233,15 @@
                   <option value="0">0%</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label>Retención Practicada</label>
+                <select id="expRetType">
+                  <option value="NONE">Ninguna (0%)</option>
+                  <option value="115">Mod. 115 - Alquileres (19%)</option>
+                  <option value="111_15">Mod. 111 - Prof. Indep. (15%)</option>
+                  <option value="111_7">Mod. 111 - Prof. Indep. (7%)</option>
+                </select>
+              </div>
             </div>
             <button type="submit" class="btn">Guardar Gasto</button>
           </form>
@@ -249,20 +251,32 @@
       <!-- SECCIÓN MODELOS CÁLCULO IMPUESTOS (AEAT) -->
       <div id="impuestos" class="tab-section">
         <div class="card">
-          <h2>Liquidación Estimada de Impuestos (Trimestral)</h2>
-          <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Cálculos automáticos basados en los ingresos y gastos registrados para la empresa activa.</p>
+          <h2>Liquidación Estimada de Impuestos Trimestrales (AEAT)</h2>
+          <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Cálculo automatizado en tiempo real a partir de todas las facturas y retenciones registradas.</p>
           
-          <div class="form-grid">
+          <div class="tax-grid">
             <div class="tax-box">
-              <div class="tax-title">Modelo 303 (IVA Trimestral)</div>
+              <div class="tax-title">Modelo 303 (IVA)</div>
               <div class="tax-value" id="taxM303">0.00 €</div>
-              <small style="color: var(--text-muted);">Diferencia entre IVA Repercutido (Ventas) e IVA Soportado (Gastos).</small>
+              <small style="color: var(--text-muted);">IVA Repercutido - IVA Soportado</small>
             </div>
 
             <div class="tax-box" style="border-left-color: var(--warning);">
-              <div class="tax-title">Modelo 130 (IRPF Autónomos - 20%)</div>
+              <div class="tax-title">Modelo 130 (IRPF)</div>
               <div class="tax-value" id="taxM130" style="color: var(--warning);">0.00 €</div>
-              <small style="color: var(--text-muted);">Pagos a cuenta del 20% sobre el Rendimiento Neto acumulado.</small>
+              <small style="color: var(--text-muted);">20% sobre Rendimiento Neto</small>
+            </div>
+
+            <div class="tax-box" style="border-left-color: #8b5cf6;">
+              <div class="tax-title">Modelo 115 (Alquileres)</div>
+              <div class="tax-value" id="taxM115" style="color: #8b5cf6;">0.00 €</div>
+              <small style="color: var(--text-muted);">19% Retenciones en alquileres a ingresar</small>
+            </div>
+
+            <div class="tax-box" style="border-left-color: #ec4899;">
+              <div class="tax-title">Modelo 111 (Profesionales)</div>
+              <div class="tax-value" id="taxM111" style="color: #ec4899;">0.00 €</div>
+              <small style="color: var(--text-muted);">Retenciones practicadas en facturas de profesionales</small>
             </div>
           </div>
 
@@ -297,7 +311,7 @@
         </div>
       </div>
 
-      <!-- SECCIÓN ALTA DE NUEVA EMPRESA O AUTÓNOMO -->
+      <!-- SECCIÓN GESTIÓN EMPRESAS -->
       <div id="empresas" class="tab-section">
         <div class="card">
           <h2>Dar de Alta Nuevo Autónomo / Empresa</h2>
@@ -323,7 +337,7 @@
   <script>
     const NEON_DATABASE_URL = "postgresql://neondb_owner:npg_0panmdRwqKb6@ep-silent-leaf-b9137n0x-pooler.c-7.eu-central-1.aws.neon.tech/neondb";
     
-    // SUSTITUYE "PEGA_AQUI_TU_TOKEN" POR TU CLAVE "napi_..."
+    // SUSTITUYE "PEGA_AQUI_TU_TOKEN" POR TU CLAVE REAL "napi_..."
     const NEON_API_KEY = "PEGA_AQUI_TU_TOKEN";
 
     let activeCompanyId = null;
@@ -343,98 +357,3 @@
       const response = await fetch("https://console.neon.tech/api/v2/sql", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${NEON_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          db_url: NEON_DATABASE_URL,
-          query: sqlQuery
-        })
-      });
-      return await response.json();
-    }
-
-    async function loadCompanies() {
-      const res = await queryNeon("SELECT * FROM empresas ORDER BY creado_en DESC;");
-      if (res.rows) {
-        const select = document.getElementById('currentCompanySelect');
-        select.innerHTML = '<option value="">-- Seleccionar Empresa --</option>' +
-          res.rows.map(c => `<option value="${c.id}">${c.razon_social} (${c.cif_nif})</option>`).join('');
-      }
-    }
-
-    document.getElementById('companyForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const taxId = document.getElementById('compTaxId').value;
-      const name = document.getElementById('compName').value;
-
-      const sql = `INSERT INTO empresas (cif_nif, razon_social) VALUES ('${taxId}', '${name}');`;
-      await queryNeon(sql);
-      alert('Empresa registrada en la nube Neon.');
-      this.reset();
-      loadCompanies();
-    });
-
-    function onCompanyChange() {
-      const select = document.getElementById('currentCompanySelect');
-      activeCompanyId = select.value;
-      const selectedText = select.options[select.selectedIndex].text;
-      document.getElementById('activeCompanyTitle').innerText = activeCompanyId ? selectedText : 'Seleccione una empresa';
-      if (activeCompanyId) {
-        loadInvoices();
-        calculateTaxes();
-      }
-    }
-
-    async function loadInvoices() {
-      if (!activeCompanyId) return;
-      const res = await queryNeon(`SELECT * FROM facturas WHERE empresa_id = '${activeCompanyId}' AND tipo = 'VENTA' ORDER BY fecha_emision DESC;`);
-      if (res.rows) {
-        const tbody = document.getElementById('salesTableBody');
-        tbody.innerHTML = res.rows.map(i => `<tr><td><strong>${i.numero_serie}</strong></td><td>-</td><td>${i.fecha_emision}</td><td>${i.concepto}</td><td><strong>${i.total} €</strong></td></tr>`).join('');
-      }
-    }
-
-    document.getElementById('salesForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!activeCompanyId) { alert('Selecciona una empresa en el menú lateral primero.'); return; }
-
-      const base = parseFloat(document.getElementById('saleBase').value);
-      const vatRate = parseFloat(document.getElementById('saleVat').value);
-      const vatAmount = base * (vatRate / 100);
-      const total = base + vatAmount;
-      const num = document.getElementById('saleNumber').value;
-      const date = document.getElementById('saleDate').value;
-      const concept = document.getElementById('saleConcept').value;
-
-      const sql = `INSERT INTO facturas (empresa_id, tipo, numero_serie, fecha_emision, concepto, base_imponible, iva_porcentaje, iva_importe, total) VALUES ('${activeCompanyId}', 'VENTA', '${num}', '${date}', '${concept}', ${base}, ${vatRate}, ${vatAmount}, ${total});`;
-      
-      await queryNeon(sql);
-      alert('Factura guardada en Neon PostgreSQL.');
-      this.reset();
-      loadInvoices();
-    });
-
-    async function calculateTaxes() {
-      if (!activeCompanyId) return;
-      
-      const resVentas = await queryNeon(`SELECT SUM(iva_importe) as iva_rep, SUM(base_imponible) as base_ventas FROM facturas WHERE empresa_id = '${activeCompanyId}' AND tipo = 'VENTA';`);
-      const resGastos = await queryNeon(`SELECT SUM(iva_importe) as iva_sop, SUM(base_imponible) as base_gastos FROM facturas WHERE empresa_id = '${activeCompanyId}' AND tipo = 'GASTO';`);
-
-      const ivaRep = parseFloat(resVentas.rows[0]?.iva_rep || 0);
-      const ivaSop = parseFloat(resGastos.rows[0]?.iva_sop || 0);
-      const baseVentas = parseFloat(resVentas.rows[0]?.base_ventas || 0);
-      const baseGastos = parseFloat(resGastos.rows[0]?.base_gastos || 0);
-
-      const m303 = ivaRep - ivaSop;
-      const rendimientoNeto = baseVentas - baseGastos;
-      const m130 = rendimientoNeto > 0 ? rendimientoNeto * 0.20 : 0;
-
-      document.getElementById('taxM303').innerText = `${m303.toFixed(2)} €`;
-      document.getElementById('taxM130').innerText = `${m130.toFixed(2)} €`;
-    }
-
-    loadCompanies();
-  </script>
-</body>
-</html>
