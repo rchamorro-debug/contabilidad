@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContaPro Max - Gestor Multiempresa</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
+        body.dark-mode {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); transition: all 0.3s ease; }
+        
+        header { 
+            background-color: var(--card-bg); 
+            border-bottom: 1px solid var(--border); 
+            padding: 1rem 2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .company-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--bg);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        select, button, input {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        button.primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background-color: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
+        .card h3 { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .card .amount { font-size: 1.75rem; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <h2>ContaPro Max</h2>
+            
+            <!-- SELECTOR MULTIEMPRESA -->
+            <div class="company-selector">
+                <label for="companySelect"><strong>Empresa activa:</strong></label>
+                <select id="companySelect" onchange="switchCompany(this.value)">
+                    <!-- Se rellenará dinámicamente -->
+                </select>
+                <button onclick="createNewCompany()">+ Nueva Empresa</button>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="toggleDarkMode()">🌓 Modo Claro/Oscuro</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 id="companyTitle" style="margin-bottom: 1.5rem;">Cargando...</h1>
+
+        <div class="grid">
+            <div class="card">
+                <h3>INGRESOS TOTALES</h3>
+                <div class="amount" id="totalIncome" style="color: var(--success)">0,00 €</div>
+            </div>
+            <div class="card">
+                <h3>GASTOS TOTALES</h3>
+                <div class="amount" id="totalExpenses" style="color: var(--danger)">0,00 €</div>
+            </div>
+            <div class="card">
+                <h3>BENEFICIO NETO</h3>
+                <div class="amount" id="netProfit">0,00 €</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>NUEVA FACTURA DE VENTA</h3>
+            <form id="invoiceForm" onsubmit="addInvoice(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <input type="text" id="clientName" placeholder="Cliente / Razón Social" required>
+                <input type="number" id="baseAmount" placeholder="Base Imponible (€)" step="0.01" required>
+                <select id="vatType">
+                    <option value="21">IVA 21%</option>
+                    <option value="10">IVA 10%</option>
+                    <option value="4">IVA 4%</option>
+                </select>
+                <button type="submit" class="primary">+ Guardar Factura</button>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+            <h3>HISTORIAL DE FACTURAS DE ESTA EMPRESA</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Base Imponible</th>
+                        <th>IVA</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceTableBody">
+                    <!-- Registros -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Estructura de datos multiempresa en localStorage
+        let db = JSON.parse(localStorage.getItem('contapro_db')) || {
+            activeCompanyId: "empresa_1",
+            companies: {
+                "empresa_1": { name: "Mi Primera Empresa S.L.", invoices: [] }
+            }
+        };
+
+        function saveDB() {
+            localStorage.setItem('contapro_db', JSON.stringify(db));
+            render();
+        }
+
+        function createNewCompany() {
+            const name = prompt("Introduce el nombre de la nueva empresa o autónomo:");
+            if (name) {
+                const id = 'empresa_' + Date.now();
+                db.companies[id] = { name: name, invoices: [] };
+                db.activeCompanyId = id;
+                saveDB();
+            }
+        }
+
+        function switchCompany(id) {
+            db.activeCompanyId = id;
+            saveDB();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function addInvoice(e) {
+            e.preventDefault();
+            const client = document.getElementById('clientName').value;
+            const base = parseFloat(document.getElementById('baseAmount').value);
+            const vatRate = parseFloat(document.getElementById('vatType').value);
+            const vat = base * (vatRate / 100);
+            const total = base + vat;
+
+            const activeComp = db.companies[db.activeCompanyId];
+            activeComp.invoices.push({ client, base, vat, total });
+            
+            document.getElementById('invoiceForm').reset();
+            saveDB();
+        }
+
+        function render() {
+            // Render Selector de empresas
+            const select = document.getElementById('companySelect');
+            select.innerHTML = '';
+            Object.keys(db.companies).forEach(id => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = db.companies[id].name;
+                if (id === db.activeCompanyId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            // Empresa activa
+            const activeCompany = db.companies[db.activeCompanyId];
+            document.getElementById('companyTitle').textContent = "Panel de Control: " + activeCompany.name;
+
+            // Totales
+            let totalInc = 0;
+            const tbody = document.getElementById('invoiceTableBody');
+            tbody.innerHTML = '';
+
+            activeCompany.invoices.forEach(inv => {
+                totalInc += inv.total;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${inv.client}</td>
+                    <td>${inv.base.toFixed(2)} €</td>
+                    <td>${inv.vat.toFixed(2)} €</td>
+                    <td><strong>${inv.total.toFixed(2)} €</strong></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('totalIncome').textContent = totalInc.toFixed(2) + " €";
+            document.getElementById('netProfit').textContent = totalInc.toFixed(2) + " €";
+        }
+
+        // Carga inicial
+        render();
+    </script>
+</body>
+</html>
