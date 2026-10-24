@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ContaSimple Cloud - Software Contable Multi-empresa</title>
+  <title>ContaSimple Cloud - ERP Contable & Impuestos</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -14,6 +14,7 @@
       --text-muted: #64748b;
       --border: #e2e8f0;
       --success: #16a34a;
+      --warning: #d97706;
       --danger: #dc2626;
     }
 
@@ -27,8 +28,8 @@
     .company-selector-box label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px; }
     .company-selector-box select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; outline: none; font-size: 13px; }
 
-    aside nav { flex: 1; padding-top: 10px; }
-    aside nav button { width: 100%; text-align: left; background: none; border: none; color: #94a3b8; padding: 14px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+    aside nav { flex: 1; padding-top: 10px; overflow-y: auto; }
+    aside nav button { width: 100%; text-align: left; background: none; border: none; color: #94a3b8; padding: 12px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
     aside nav button:hover, aside nav button.active { color: white; background: rgba(255,255,255,0.08); border-left: 4px solid #38bdf8; }
 
     main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
@@ -48,6 +49,8 @@
 
     .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background 0.2s; font-size: 14px; }
     .btn:hover { background: #1d4ed8; }
+    .btn-success { background: var(--success); }
+    .btn-warning { background: var(--warning); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
@@ -55,6 +58,10 @@
     
     .status-online { color: var(--success); font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; }
+
+    .tax-box { background: #f1f5f9; padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary); margin-bottom: 15px; }
+    .tax-title { font-weight: 700; font-size: 16px; margin-bottom: 5px; color: #0f172a; }
+    .tax-value { font-size: 24px; font-weight: 800; color: var(--primary); }
   </style>
 </head>
 <body>
@@ -71,7 +78,9 @@
 
     <nav>
       <button class="nav-btn active" onclick="switchSection('ventas', this)">Facturas de Venta</button>
+      <button class="nav-btn" onclick="switchSection('presupuestos', this)">Presupuestos</button>
       <button class="nav-btn" onclick="switchSection('gastos', this)">Gastos y Compras</button>
+      <button class="nav-btn" onclick="switchSection('impuestos', this)">Modelos Impuestos (AEAT)</button>
       <button class="nav-btn" onclick="switchSection('contactos', this)">Clientes / Proveedores</button>
       <button class="nav-btn" onclick="switchSection('empresas', this)">Gestión Empresas</button>
     </nav>
@@ -85,7 +94,7 @@
 
     <div class="content">
 
-      <!-- SECCIÓN EMISIÓN FACTURAS -->
+      <!-- SECCIÓN EMISIÓN FACTURAS DE VENTA -->
       <div id="ventas" class="tab-section active">
         <div class="card">
           <h2>Emitir Factura de Venta</h2>
@@ -96,10 +105,8 @@
                 <input type="text" id="saleNumber" value="F2026-0001" required>
               </div>
               <div class="form-group">
-                <label>Cliente</label>
-                <select id="saleClientSelect" required>
-                  <option value="">-- Seleccionar Cliente --</option>
-                </select>
+                <label>Cliente / NIF</label>
+                <input type="text" id="saleClientName" placeholder="Nombre o Razón Social" required>
               </div>
               <div class="form-group">
                 <label>Fecha de Emisión</label>
@@ -130,7 +137,7 @@
         </div>
 
         <div class="card">
-          <h2>Facturas Registradas (Guardadas en Neon Nube)</h2>
+          <h2>Facturas Registradas</h2>
           <table>
             <thead>
               <tr>
@@ -143,6 +150,150 @@
             </thead>
             <tbody id="salesTableBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- SECCIÓN PRESUPUESTOS -->
+      <div id="presupuestos" class="tab-section">
+        <div class="card">
+          <h2>Crear Nuevo Presupuesto / Oferta</h2>
+          <form id="budgetForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nº Presupuesto</label>
+                <input type="text" id="budgetNumber" value="PRES-2026-001" required>
+              </div>
+              <div class="form-group">
+                <label>Cliente Potencial</label>
+                <input type="text" id="budgetClient" placeholder="Cliente Ejemplo S.L." required>
+              </div>
+              <div class="form-group">
+                <label>Fecha Validez</label>
+                <input type="date" id="budgetDate" required>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Descripción del Trabajo</label>
+                <input type="text" id="budgetConcept" placeholder="Instalación / Consultoría" required>
+              </div>
+              <div class="form-group">
+                <label>Importe estimado (€)</label>
+                <input type="number" id="budgetBase" step="0.01" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-warning">Guardar Presupuesto</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Listado de Presupuestos</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nº Presupuesto</th>
+                <th>Cliente</th>
+                <th>Concepto</th>
+                <th>Base (€)</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="budgetTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECCIÓN GASTOS Y COMPRAS -->
+      <div id="gastos" class="tab-section">
+        <div class="card">
+          <h2>Registrar Gasto / Factura Recibida</h2>
+          <form id="expenseForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nº Factura Proveedor</label>
+                <input type="text" id="expNumber" placeholder="PROV-9982" required>
+              </div>
+              <div class="form-group">
+                <label>Proveedor / Acreedor</label>
+                <input type="text" id="expProvider" placeholder="Suministros / Alquiler" required>
+              </div>
+              <div class="form-group">
+                <label>Fecha Factura</label>
+                <input type="date" id="expDate" required>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Concepto Gasto</label>
+                <input type="text" id="expConcept" placeholder="Suministro de Luz / Alquiler Oficina" required>
+              </div>
+              <div class="form-group">
+                <label>Base Imponible (€)</label>
+                <input type="number" id="expBase" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label>IVA (%)</label>
+                <select id="expVat">
+                  <option value="21">21%</option>
+                  <option value="10">10%</option>
+                  <option value="4">4%</option>
+                  <option value="0">0%</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn">Guardar Gasto</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- SECCIÓN MODELOS CÁLCULO IMPUESTOS (AEAT) -->
+      <div id="impuestos" class="tab-section">
+        <div class="card">
+          <h2>Liquidación Estimada de Impuestos (Trimestral)</h2>
+          <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Cálculos automáticos basados en los ingresos y gastos registrados para la empresa activa.</p>
+          
+          <div class="form-grid">
+            <div class="tax-box">
+              <div class="tax-title">Modelo 303 (IVA Trimestral)</div>
+              <div class="tax-value" id="taxM303">0.00 €</div>
+              <small style="color: var(--text-muted);">Diferencia entre IVA Repercutido (Ventas) e IVA Soportado (Gastos).</small>
+            </div>
+
+            <div class="tax-box" style="border-left-color: var(--warning);">
+              <div class="tax-title">Modelo 130 (IRPF Autónomos - 20%)</div>
+              <div class="tax-value" id="taxM130" style="color: var(--warning);">0.00 €</div>
+              <small style="color: var(--text-muted);">Pagos a cuenta del 20% sobre el Rendimiento Neto acumulado.</small>
+            </div>
+          </div>
+
+          <button onclick="calculateTaxes()" class="btn btn-success">Recalcular Impuestos Ahora</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN CLIENTES Y PROVEEDORES -->
+      <div id="contactos" class="tab-section">
+        <div class="card">
+          <h2>Directorio de Clientes y Proveedores</h2>
+          <form id="contactForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>NIF / CIF</label>
+                <input type="text" id="contactTaxId" placeholder="12345678X" required>
+              </div>
+              <div class="form-group">
+                <label>Nombre / Razón Social</label>
+                <input type="text" id="contactName" placeholder="Cliente Ejemplo S.L." required>
+              </div>
+              <div class="form-group">
+                <label>Tipo</label>
+                <select id="contactType">
+                  <option value="CLIENTE">Cliente</option>
+                  <option value="PROVEEDOR">Proveedor</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn">Guardar Contacto</button>
+          </form>
         </div>
       </div>
 
@@ -172,17 +323,20 @@
   <script>
     const NEON_DATABASE_URL = "postgresql://neondb_owner:npg_0panmdRwqKb6@ep-silent-leaf-b9137n0x-pooler.c-7.eu-central-1.aws.neon.tech/neondb";
     
-    // PEGA TU CLAVE DE NEON EN LUGAR DEL TEXTO "PEGA_AQUI_TU_TOKEN"
-    const NEON_API_KEY = "napi_vm6kp88wubpojlb47kpo31f6kzv5jqg8ojk46elh9flm2n...";
+    // SUSTITUYE "PEGA_AQUI_TU_TOKEN" POR TU CLAVE "napi_..."
+    const NEON_API_KEY = "PEGA_AQUI_TU_TOKEN";
 
     let activeCompanyId = null;
     document.getElementById('saleDate').valueAsDate = new Date();
+    document.getElementById('budgetDate').valueAsDate = new Date();
+    document.getElementById('expDate').valueAsDate = new Date();
 
     function switchSection(id, btn) {
       document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       btn.classList.add('active');
+      if (id === 'impuestos') calculateTaxes();
     }
 
     async function queryNeon(sqlQuery) {
@@ -226,7 +380,10 @@
       activeCompanyId = select.value;
       const selectedText = select.options[select.selectedIndex].text;
       document.getElementById('activeCompanyTitle').innerText = activeCompanyId ? selectedText : 'Seleccione una empresa';
-      if (activeCompanyId) loadInvoices();
+      if (activeCompanyId) {
+        loadInvoices();
+        calculateTaxes();
+      }
     }
 
     async function loadInvoices() {
@@ -240,10 +397,7 @@
 
     document.getElementById('salesForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      if (!activeCompanyId) {
-        alert('Selecciona una empresa en el menú lateral primero.');
-        return;
-      }
+      if (!activeCompanyId) { alert('Selecciona una empresa en el menú lateral primero.'); return; }
 
       const base = parseFloat(document.getElementById('saleBase').value);
       const vatRate = parseFloat(document.getElementById('saleVat').value);
@@ -260,6 +414,25 @@
       this.reset();
       loadInvoices();
     });
+
+    async function calculateTaxes() {
+      if (!activeCompanyId) return;
+      
+      const resVentas = await queryNeon(`SELECT SUM(iva_importe) as iva_rep, SUM(base_imponible) as base_ventas FROM facturas WHERE empresa_id = '${activeCompanyId}' AND tipo = 'VENTA';`);
+      const resGastos = await queryNeon(`SELECT SUM(iva_importe) as iva_sop, SUM(base_imponible) as base_gastos FROM facturas WHERE empresa_id = '${activeCompanyId}' AND tipo = 'GASTO';`);
+
+      const ivaRep = parseFloat(resVentas.rows[0]?.iva_rep || 0);
+      const ivaSop = parseFloat(resGastos.rows[0]?.iva_sop || 0);
+      const baseVentas = parseFloat(resVentas.rows[0]?.base_ventas || 0);
+      const baseGastos = parseFloat(resGastos.rows[0]?.base_gastos || 0);
+
+      const m303 = ivaRep - ivaSop;
+      const rendimientoNeto = baseVentas - baseGastos;
+      const m130 = rendimientoNeto > 0 ? rendimientoNeto * 0.20 : 0;
+
+      document.getElementById('taxM303').innerText = `${m303.toFixed(2)} €`;
+      document.getElementById('taxM130').innerText = `${m130.toFixed(2)} €`;
+    }
 
     loadCompanies();
   </script>
