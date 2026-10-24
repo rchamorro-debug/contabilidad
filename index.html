@@ -1,237 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ContaPro Max - Gestor Multiempresa</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --danger: #dc2626;
-        }
-
-        body.dark-mode {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); transition: all 0.3s ease; }
-        
-        header { 
-            background-color: var(--card-bg); 
-            border-bottom: 1px solid var(--border); 
-            padding: 1rem 2rem; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-
-        .company-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: var(--bg);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        select, button, input {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background-color: var(--card-bg);
-            color: var(--text);
-            cursor: pointer;
-        }
-
-        button.primary {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            font-weight: 600;
-        }
-
-        .container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background-color: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
-        .card h3 { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem; }
-        .card .amount { font-size: 1.75rem; font-weight: bold; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContaSimple - Software Contable</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f6f9; color: #333; padding: 20px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header { background: #1e293b; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 22px; }
+    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    h2 { font-size: 18px; margin-bottom: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+    .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
+    .form-group input:focus { border-color: #2563eb; }
+    button { background: #2563eb; color: white; border: none; padding: 12px 20px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #1d4ed8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    th { background: #f8fafc; color: #475569; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .badge-success { background: #dcfce7; color: #166534; }
+  </style>
 </head>
 <body>
 
+  <div class="container">
     <header>
-        <div style="display: flex; align-items: center; gap: 1.5rem;">
-            <h2>ContaPro Max</h2>
-            
-            <!-- SELECTOR MULTIEMPRESA -->
-            <div class="company-selector">
-                <label for="companySelect"><strong>Empresa activa:</strong></label>
-                <select id="companySelect" onchange="switchCompany(this.value)">
-                    <!-- Se rellenará dinámicamente -->
-                </select>
-                <button onclick="createNewCompany()">+ Nueva Empresa</button>
-            </div>
-        </div>
-
-        <div>
-            <button onclick="toggleDarkMode()">🌓 Modo Claro/Oscuro</button>
-        </div>
+      <h1>ContaSimple - Panel de Control</h1>
+      <span style="font-size: 13px; opacity: 0.8;">Empresa: Mi Negocio Autónomo</span>
     </header>
 
-    <div class="container">
-        <h1 id="companyTitle" style="margin-bottom: 1.5rem;">Cargando...</h1>
-
-        <div class="grid">
-            <div class="card">
-                <h3>INGRESOS TOTALES</h3>
-                <div class="amount" id="totalIncome" style="color: var(--success)">0,00 €</div>
-            </div>
-            <div class="card">
-                <h3>GASTOS TOTALES</h3>
-                <div class="amount" id="totalExpenses" style="color: var(--danger)">0,00 €</div>
-            </div>
-            <div class="card">
-                <h3>BENEFICIO NETO</h3>
-                <div class="amount" id="netProfit">0,00 €</div>
-            </div>
+    <!-- FORMULARIO CREAR FACTURA -->
+    <div class="card">
+      <h2>Nueva Factura de Venta</h2>
+      <form id="invoiceForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Serie y Número</label>
+            <input type="text" id="seriesNumber" value="F2026-0001" required>
+          </div>
+          <div class="form-group">
+            <label>Cliente / NIF</label>
+            <input type="text" id="clientName" placeholder="Cliente Ejemplo S.L." required>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Emisión</label>
+            <input type="date" id="issueDate" required>
+          </div>
         </div>
 
-        <div class="card">
-            <h3>NUEVA FACTURA DE VENTA</h3>
-            <form id="invoiceForm" onsubmit="addInvoice(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                <input type="text" id="clientName" placeholder="Cliente / Razón Social" required>
-                <input type="number" id="baseAmount" placeholder="Base Imponible (€)" step="0.01" required>
-                <select id="vatType">
-                    <option value="21">IVA 21%</option>
-                    <option value="10">IVA 10%</option>
-                    <option value="4">IVA 4%</option>
-                </select>
-                <button type="submit" class="primary">+ Guardar Factura</button>
-            </form>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Concepto / Descripción</label>
+            <input type="text" id="concept" placeholder="Desarrollo de Software / Servicios" required>
+          </div>
+          <div class="form-group">
+            <label>Importe Base (€)</label>
+            <input type="number" id="baseAmount" step="0.01" placeholder="1000.00" required>
+          </div>
+          <div class="form-group">
+            <label>Tipo de IVA (%)</label>
+            <select id="taxRate">
+              <option value="21">21%</option>
+              <option value="10">10%</option>
+              <option value="4">4%</option>
+              <option value="0">0%</option>
+            </select>
+          </div>
         </div>
 
-        <div class="card" style="margin-top: 2rem;">
-            <h3>HISTORIAL DE FACTURAS DE ESTA EMPRESA</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Base Imponible</th>
-                        <th>IVA</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody id="invoiceTableBody">
-                    <!-- Registros -->
-                </tbody>
-            </table>
-        </div>
+        <button type="submit">Emitir Factura y Contabilizar</button>
+      </form>
     </div>
 
-    <script>
-        // Estructura de datos multiempresa en localStorage
-        let db = JSON.parse(localStorage.getItem('contapro_db')) || {
-            activeCompanyId: "empresa_1",
-            companies: {
-                "empresa_1": { name: "Mi Primera Empresa S.L.", invoices: [] }
-            }
-        };
+    <!-- LISTADO DE FACTURAS -->
+    <div class="card">
+      <h2>Registro de Facturas Emitidas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Total (€)</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceTableBody">
+          <!-- Las facturas aparecerán aquí automáticamente -->
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-        function saveDB() {
-            localStorage.setItem('contapro_db', JSON.stringify(db));
-            render();
-        }
+  <script>
+    document.getElementById('issueDate').valueAsDate = new Date();
 
-        function createNewCompany() {
-            const name = prompt("Introduce el nombre de la nueva empresa o autónomo:");
-            if (name) {
-                const id = 'empresa_' + Date.now();
-                db.companies[id] = { name: name, invoices: [] };
-                db.activeCompanyId = id;
-                saveDB();
-            }
-        }
+    const invoiceForm = document.getElementById('invoiceForm');
+    const invoiceTableBody = document.getElementById('invoiceTableBody');
+    let invoices = [];
 
-        function switchCompany(id) {
-            db.activeCompanyId = id;
-            saveDB();
-        }
+    invoiceForm.addEventListener('submit', function(e) {
+      e.preventDefault();
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
+      const seriesNumber = document.getElementById('seriesNumber').value;
+      const clientName = document.getElementById('clientName').value;
+      const issueDate = document.getElementById('issueDate').value;
+      const concept = document.getElementById('concept').value;
+      const baseAmount = parseFloat(document.getElementById('baseAmount').value);
+      const taxRate = parseFloat(document.getElementById('taxRate').value);
 
-        function addInvoice(e) {
-            e.preventDefault();
-            const client = document.getElementById('clientName').value;
-            const base = parseFloat(document.getElementById('baseAmount').value);
-            const vatRate = parseFloat(document.getElementById('vatType').value);
-            const vat = base * (vatRate / 100);
-            const total = base + vat;
+      const taxAmount = baseAmount * (taxRate / 100);
+      const totalAmount = baseAmount + taxAmount;
 
-            const activeComp = db.companies[db.activeCompanyId];
-            activeComp.invoices.push({ client, base, vat, total });
-            
-            document.getElementById('invoiceForm').reset();
-            saveDB();
-        }
+      const newInvoice = {
+        number: seriesNumber,
+        client: clientName,
+        date: issueDate,
+        concept: concept,
+        total: totalAmount.toFixed(2),
+        status: 'Emitida'
+      };
 
-        function render() {
-            // Render Selector de empresas
-            const select = document.getElementById('companySelect');
-            select.innerHTML = '';
-            Object.keys(db.companies).forEach(id => {
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.textContent = db.companies[id].name;
-                if (id === db.activeCompanyId) opt.selected = true;
-                select.appendChild(opt);
-            });
+      invoices.push(newInvoice);
+      renderInvoices();
+      invoiceForm.reset();
+      document.getElementById('issueDate').valueAsDate = new Date();
+    });
 
-            // Empresa activa
-            const activeCompany = db.companies[db.activeCompanyId];
-            document.getElementById('companyTitle').textContent = "Panel de Control: " + activeCompany.name;
-
-            // Totales
-            let totalInc = 0;
-            const tbody = document.getElementById('invoiceTableBody');
-            tbody.innerHTML = '';
-
-            activeCompany.invoices.forEach(inv => {
-                totalInc += inv.total;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${inv.client}</td>
-                    <td>${inv.base.toFixed(2)} €</td>
-                    <td>${inv.vat.toFixed(2)} €</td>
-                    <td><strong>${inv.total.toFixed(2)} €</strong></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('totalIncome').textContent = totalInc.toFixed(2) + " €";
-            document.getElementById('netProfit').textContent = totalInc.toFixed(2) + " €";
-        }
-
-        // Carga inicial
-        render();
-    </script>
+    function renderInvoices() {
+      invoiceTableBody.innerHTML = '';
+      invoices.forEach(inv => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${inv.number}</strong></td>
+          <td>${inv.client}</td>
+          <td>${inv.date}</td>
+          <td>${inv.concept}</td>
+          <td><strong>${inv.total} €</strong></td>
+          <td><span class="badge badge-success">${inv.status}</span></td>
+        `;
+        invoiceTableBody.appendChild(row);
+      });
+    }
+  </script>
 </body>
 </html>
